@@ -19,26 +19,26 @@ const Cart = () => {
     return total.toFixed(2);
   };
 
-  const handlePayment = async () => {
-   
-  };
+
   return (
     <div className="cart">
-      <h1>Products in your cart</h1>
+      <h1>Giỏ hàng</h1>
       {products?.map((item) => (
         <div className="item" key={item._id}>
           <img src={process.env.REACT_APP_CLOUDINARY_URL + item.img} alt="" />
           <div className="details">
             <h1>{item.name}</h1>
             <p>{item.description?.substring(0, 100)}</p>
-            <p>Quantity: {item.quantity} items</p>
+            <p>Số lượng: {item.quantity} sản phẩm</p>
             <div className="price">
               {numberWithCommas(item.quantity*item.price)}
             </div>
           </div>
           <DeleteOutlinedIcon
             className="delete"
-            onClick={() => dispatch(removeItem(item._id))}
+            onClick={() => {
+              dispatch(removeItem({id: item._id, size: item.size}))
+            }}
           />
         </div>
       ))}

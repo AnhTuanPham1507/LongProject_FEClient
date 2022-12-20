@@ -24,13 +24,14 @@ import { numberWithCommas } from "../../utils/FormatPrice";
 import apiAgent from '../../makeRequest'
 import useFetch from "../../hooks/useFetch";
 import { useNavigate } from "react-router-dom";
+import { usePlacesWidget } from "react-google-autocomplete";
+import makeRequest from "../../makeRequest";
 
 function Payment() {
     const cartItems = useSelector((state) => state.cart.products);
     const dispatch = useDispatch();
-    const navigate = useNavigate();
 
-    const [citites, setCities] = useState([])
+    const [cities, setCities] = useState([])
     const [districts, setDistricts] = useState([])
     const [activeCity, setActiveCity] = useState(null)
     const [activeDistrict, setActiveDistrict] = useState(null)
@@ -39,6 +40,15 @@ function Payment() {
     const [phone, setPhone] = useState(null)
     const [address, setAddress] = useState(null)
     const [paymentType, setPaymentType] = useState("in_person")
+    const [shippingCharges, setShippingCharges] = useState(0)
+
+
+    const { ref } = usePlacesWidget({
+        apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
+        onPlaceSelected: (place) => { console.log(place) },
+        options: { fields: ["place_id"] },
+        language: "vi"
+    })
 
     const { data: loadCities, loading, error } = useFetch("provinceAPI", "getAll");
 
@@ -56,6 +66,25 @@ function Payment() {
         }
     }, [activeCity])
 
+    useEffect(() => {
+        async function calculateShippingCharges() {
+            try {
+                const resGeoCode = await makeRequest.provinceAPI.getGeoCodeing(`${address}, ${activeDistrict.name}, ${activeCity.name}`)
+                const firstGeoCode = resGeoCode.data.features[0].center
+                const myLng = parseFloat(process.env.REACT_APP_MY_GEOCODE_LNG)
+                const myLat = parseFloat(process.env.REACT_APP_MY_GEOCODE_LAT)
+                const resShippingCharges = await makeRequest.provinceAPI.calculateShippingCharges({ myLng, myLat, cusLng: firstGeoCode[0], cusLat: firstGeoCode[1] })
+                const tempShippingCharges = Math.round(resShippingCharges.data.routes[0].distance * parseInt(process.env.REACT_APP_CHARGES_PER_MET))
+                setShippingCharges(tempShippingCharges)
+            } catch (error) {
+                alert(error)
+            }
+        }
+
+        if (address !== "" && activeCity && activeDistrict)
+            calculateShippingCharges()
+    }, [address, activeDistrict])
+
     async function handlePaymentSubmit(e) {
         e.preventDefault()
         try {
@@ -64,19 +93,19 @@ function Payment() {
                 email,
                 phone,
                 paymentType,
-                totalBill: cartItems.reduce((total, item) => total + item.quantity * item.price, 0),
-                address: `${address} ${activeDistrict.name} ${activeCity.name}`,
+                address: `${address}, ${activeDistrict.name}, ${activeCity.name}`,
+                totalBill: cartItems.reduce((total, item) => total + item.quantity * item.price, 0) + shippingCharges,
                 r_exportOrderDetails: cartItems.map(item => {
                     return {
                         quantity: item.quantity,
                         price: item.price,
-                        r_productDetail: "6385bfdd4eef523cf3867a37"
+                        r_product: item._id,
+                        size: item.size
                     }
                 })
             }
-            console.log(orderData)
             const res = await apiAgent.exportOrderAPI.create(orderData)
-            window.location.href = res.data.data.payUrl
+            window.location.href = res.data.payUrl
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 console.log(error.response.data.message)
@@ -96,7 +125,7 @@ function Payment() {
                         <MDBCard style={{ width: "100%" }}>
                             <MDBCardHeader className="py-3">
                                 <MDBTypography tag="h5" className="mb-0">
-                                    Cart - {cartItems.length} items
+                                    Có - {cartItems.length} sản phẩm
                                 </MDBTypography>
                             </MDBCardHeader>
                             <MDBCardBody >
@@ -121,17 +150,16 @@ function Payment() {
                                                     <p>
                                                         <strong>{item.name}</strong>
                                                     </p>
-                                                    <p>Color: blue</p>
-                                                    <p>Size: M</p>
+                                                    <p>Size: {item.size}</p>
 
-                                                    <MDBTooltip
-                                                        wrapperProps={{ size: "sm" }}
-                                                        wrapperClass="me-1 mb-2"
-                                                        title="Remove item"
-                                                        onClick={() => dispatch(removeItem(item._id))}
+                                                    <MDBBtn
+                                                        className="px-3 me-2"
+                                                        onClick={() => {
+                                                            dispatch(removeItem({ id: item._id, size: item.size }))
+                                                        }}
                                                     >
                                                         <MDBIcon fas icon="trash" />
-                                                    </MDBTooltip>
+                                                    </MDBBtn>
 
                                                 </MDBCol>
                                                 <MDBCol lg="4" md="6" className="mb-4 mb-lg-0">
@@ -140,9 +168,9 @@ function Payment() {
                                                             className="px-3 me-2"
                                                             onClick={() => {
                                                                 if (item.quantity == 1)
-                                                                    dispatch(removeItem(item))
+                                                                    dispatch(removeItem({ id: item._id, size: item.size }))
                                                                 else
-                                                                    dispatch(addToCart({ _id: item._id, quantity: -1 }))
+                                                                    dispatch(addToCart({ _id: item._id, size: item.size, quantity: -1 }))
                                                             }}
                                                         >
                                                             <MDBIcon fas icon="minus" />
@@ -153,7 +181,7 @@ function Payment() {
                                                         <MDBBtn
                                                             className="px-3 ms-2"
                                                             onClick={() => {
-                                                                dispatch(addToCart({ _id: item._id, quantity: 1 }))
+                                                                dispatch(addToCart({ _id: item._id, size: item.size, quantity: 1 }))
                                                             }}
                                                         >
                                                             <MDBIcon fas icon="plus" />
@@ -186,53 +214,83 @@ function Payment() {
 
                                     <Form onSubmit={(e) => { handlePaymentSubmit(e) }}>
                                         <Form.Group className="mb-3" >
-                                            <Form.Control value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Enter Name" />
+                                            <Form.Label>Tên người nhận</Form.Label>
+                                            <Form.Control value={name} onChange={(e) => setName(e.target.value)} type="text" />
                                         </Form.Group>
 
                                         <Form.Group className="mb-3" >
-                                            <Form.Control pattern="(84|0[3|5|7|8|9])+([0-9]{8})\b" value={phone} onChange={(e) => setPhone(e.target.value)} type="text" placeholder="Enter Phone" />
+                                            <Form.Label>Số diện thoại</Form.Label>
+                                            <Form.Control pattern="(84|0[3|5|7|8|9])+([0-9]{8})\b" value={phone} onChange={(e) => setPhone(e.target.value)} type="text" />
                                         </Form.Group>
 
                                         <Form.Group className="mb-3" >
-                                            <Form.Control pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Enter Email" />
+                                            <Form.Label>Địa chỉ email</Form.Label>
+                                            <Form.Control pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
                                         </Form.Group>
-
                                         <Form.Group className="mb-3" >
-                                            <Form.Control value={address} onChange={(e) => setAddress(e.target.value)} type="text" placeholder="Enter Address" />
+                                            <Form.Label>Phương thức thanh toán</Form.Label>
+                                            <Form.Select onChange={(e) => setPaymentType(e.target.value)} aria-label="Default select example">
+                                                <option value="in_person">Thanh toán khi nhận hàng</option>
+                                                <option value="momo">Thanh toán qua ví điện tử MOMO</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                        <Form.Group className="mb-3" >
+                                            <Form.Label>Địa chỉ giao hàng</Form.Label>
+                                            <Form.Control value={address} onChange={(e) => { setAddress(e.target.value) }} type="text" />
                                         </Form.Group>
 
                                         <Form.Group style={{ display: "flex" }} className="mb-3" >
-                                            <Form.Select onChange={(e) => setActiveCity(citites.find(city => city.code == e.target.value))} style={{ marginRight: "3px" }} aria-label="Default select example">
+                                            <Form.Select onChange={(e) => {
+                                                const foundCity = cities.find(city => city.code === Number(e.target.value))
+                                                if (foundCity)
+                                                    setActiveCity(foundCity)
+                                            }} style={{ marginRight: "5px" }}>
                                                 {
-                                                    citites.map(city => (
+                                                    cities.map(city =>
                                                         <option key={city.code} value={city.code}>{city.name}</option>
-                                                    ))
+                                                    )
                                                 }
                                             </Form.Select>
-                                            <Form.Select value={activeDistrict} onChange={(e) => setActiveDistrict(districts.find(district => district.code === e.target.value))} style={{ marginRight: "3px" }} aria-label="Default select example">
+                                            <Form.Select onChange={(e) => {
+                                                const foundDistrict = districts.find(district => district.code === Number(e.target.value))
+                                                if (foundDistrict)
+                                                    setActiveDistrict(foundDistrict)
+                                            }} style={{ marginRight: "5px" }}>
                                                 {
-                                                    districts.map(district => (
+                                                    districts.map(district =>
                                                         <option key={district.code} value={district.code}>{district.name}</option>
-                                                    ))
+                                                    )
                                                 }
                                             </Form.Select>
-
                                         </Form.Group>
-
-                                        <Form.Group className="mb-3" >
-                                            <Form.Select onChange={(e) => setPaymentType(e.target.value)} aria-label="Default select example">
-                                                <option value="in_person">In Person</option>
-                                                <option value="momo">MoMo</option>
-                                            </Form.Select>
-
-                                        </Form.Group>
+                                        <p>-------------------------------------------</p>
+                                        <MDBListGroupItem
+                                            className="d-flex justify-content-between align-items-center border-0 px-0 mb-3"
+                                            style={{ marginBottom: "0" }}
+                                        >
+                                            <div>
+                                                Phí giao hàng
+                                            </div>
+                                            <span>
+                                                {numberWithCommas(shippingCharges)}
+                                            </span>
+                                        </MDBListGroupItem>
                                         <MDBListGroupItem
                                             className="d-flex justify-content-between align-items-center border-0 px-0 mb-3">
                                             <div>
-                                                <strong>Total</strong>
+                                                Tạm tính
                                             </div>
                                             <span>
-                                                <strong>{numberWithCommas(cartItems.reduce((total, item) => total + item.quantity * item.price, 0))}</strong>
+                                                {numberWithCommas(cartItems.reduce((total, item) => total + item.quantity * item.price, 0))}
+                                            </span>
+                                        </MDBListGroupItem>
+                                        <MDBListGroupItem
+                                            className="d-flex justify-content-between align-items-center border-0 px-0 mb-3">
+                                            <div>
+                                                <strong>Tổng cộng</strong>
+                                            </div>
+                                            <span>
+                                                <strong>{numberWithCommas(cartItems.reduce((total, item) => total + item.quantity * item.price, 0) + shippingCharges)}</strong>
                                             </span>
                                         </MDBListGroupItem>
                                         <MDBBtn type="submit" block size="lg">
