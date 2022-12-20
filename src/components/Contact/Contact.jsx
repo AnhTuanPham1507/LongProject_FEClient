@@ -10,10 +10,10 @@ const Contact = () => {
   return (
     <div className="contact">
       <div className="wrapper">
-        <span>BE IN TOUCH WITH US:</span>
+        <span>Đăng ký nhận mã khuyến mãi cho khách hàng mới</span>
         <div className="mail">
-          <input type="text" placeholder="Enter your e-mail..." />
-          <button>JOIN US</button>
+          <input type="text" placeholder="Nhập e-mail của bạn" />
+          <button>Đăng ký</button>
         </div>
       </div>
     </div>

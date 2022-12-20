@@ -115,7 +115,7 @@ const Product = () => {
 
 
             <h3>Số lượng</h3>
-            <span className={maxQuantity <= 0 ? "outstock" : ""} >{maxQuantity > 0 ? `còn ${maxQuantity} chiếc` : "hết hàng"}</span>
+            <span className={maxQuantity <= 0 ? "outstock" : ""} >{maxQuantity > 0 ? `còn ${maxQuantity} đôi` : "hết hàng"}</span>
             <div className="quantity">
               <button
                 onClick={() =>

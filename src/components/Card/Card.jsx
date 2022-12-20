@@ -9,7 +9,7 @@ const Card = ({ item }) => {
     <Link className="link" to={`/product/${item._id}`}>
       <div className="card">
         <div className="image">
-          {<span>New Season</span>}
+          {<span>Mới</span>}
           <img
             src={
               process.env.REACT_APP_CLOUDINARY_URL + item.imgs[0]
@@ -27,8 +27,8 @@ const Card = ({ item }) => {
         </div>
         <h2>{item.name}</h2>
         <div className="prices">
-          <h3>${item.price && numberWithCommas(item.price + 20)}</h3>
-          <h3>${item.price && numberWithCommas(item.price)}</h3>
+          <h3>{item.price && numberWithCommas(item.price + 20)}</h3>
+          <h3>{item.price && numberWithCommas(item.price)}</h3>
         </div>
       </div>
     </Link>

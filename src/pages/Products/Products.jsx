@@ -12,6 +12,7 @@ const Products = () => {
   const [selectedSubCats, setSelectedSubCats] = useState([]);
 
   const { data, loading, error } = useFetch("productAPI", "getByCategoryId", catId);
+  const { data : trademarks } = useFetch("trademarkAPI", "getAll");
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -28,21 +29,21 @@ const Products = () => {
       <div className="products">
         <div className="left">
           <div className="filterItem">
-            <h2>Product Categories</h2>
-            {data?.map((product) => (
-              <div className="inputItem" key={product._id}>
+            <h2>Thương hiệu</h2>
+            {trademarks?.map((trademark) => (
+              <div className="inputItem" key={trademark._id}>
                 <input
                   type="checkbox"
-                  id={product._id}
-                  value={product._id}
+                  id={trademark._id}
+                  value={trademark._id}
                   onChange={handleChange}
                 />
-                <label htmlFor={product._id}>{product.name}</label>
+                <label htmlFor={trademark._id}>{trademark.name}</label>
               </div>
             ))}
           </div>
           <div className="filterItem">
-            <h2>Filter by price</h2>
+            <h2>Khoảng giá</h2>
             <div className="inputItem">
               <span>0</span>
               <input
@@ -55,7 +56,7 @@ const Products = () => {
             </div>
           </div>
           <div className="filterItem">
-            <h2>Sort by</h2>
+            <h2>Sắp xếp</h2>
             <div className="inputItem">
               <input
                 type="radio"
@@ -64,7 +65,7 @@ const Products = () => {
                 name="price"
                 onChange={(e) => setSort("asc")}
               />
-              <label htmlFor="asc">Price (Lowest first)</label>
+              <label htmlFor="asc">Giá (Từ thấp tới cao)</label>
             </div>
             <div className="inputItem">
               <input
@@ -74,14 +75,14 @@ const Products = () => {
                 name="price"
                 onChange={(e) => setSort("desc")}
               />
-              <label htmlFor="desc">Price (Highest first)</label>
+              <label htmlFor="desc">Giá (Từ cao tới thấp)</label>
             </div>
           </div>
         </div>
         <div className="right">
           <img
             className="catImg"
-            src="https://images.pexels.com/photos/1074535/pexels-photo-1074535.jpeg?auto=compress&cs=tinysrgb&w=1600"
+            src="https://static.nike.com/a/images/f_auto/dpr_1.3,cs_srgb/w_1423,c_limit/5f205755-7e49-42ef-84c6-c2c6a85fd000/nike-just-do-it.jpg"
             alt=""
           />
           <List products={data} catId={catId} maxPrice={maxPrice} sort={sort} subCats={selectedSubCats} />

@@ -4,7 +4,6 @@ import {
     MDBCard,
     MDBCardBody,
     MDBCardHeader,
-    MDBCardImage,
     MDBCol,
     MDBContainer,
     MDBIcon,
@@ -13,7 +12,6 @@ import {
     MDBListGroupItem,
     MDBRipple,
     MDBRow,
-    MDBTooltip,
     MDBTypography,
 } from "mdb-react-ui-kit";
 import React, { useEffect, useState } from "react";
@@ -23,7 +21,6 @@ import { addToCart, removeItem } from "../../redux/cartReducer";
 import { numberWithCommas } from "../../utils/FormatPrice";
 import apiAgent from '../../makeRequest'
 import useFetch from "../../hooks/useFetch";
-import { useNavigate } from "react-router-dom";
 import { usePlacesWidget } from "react-google-autocomplete";
 import makeRequest from "../../makeRequest";
 
@@ -206,7 +203,7 @@ function Payment() {
                         <MDBCard className="mb-4">
                             <MDBCardHeader>
                                 <MDBTypography tag="h5" className="mb-0">
-                                    Order Informations
+                                    Thông tin đơn hàng
                                 </MDBTypography>
                             </MDBCardHeader>
                             <MDBCardBody>
@@ -294,7 +291,7 @@ function Payment() {
                                             </span>
                                         </MDBListGroupItem>
                                         <MDBBtn type="submit" block size="lg">
-                                            Go to checkout
+                                            Thanh toán
                                         </MDBBtn>
                                     </Form>
                                 </MDBListGroup>

@@ -43,12 +43,12 @@ const Cart = () => {
         </div>
       ))}
       <div className="total">
-        <span>SUBTOTAL</span>
+        <span>Tổng tiền</span>
         <span>{numberWithCommas(totalPrice())}</span>
       </div>
-      <Link to="/payment">PROCEED TO CHECKOUT</Link>
+      <Link to="/payment">Thanh toán giỏ hàng</Link>
       <span className="reset" onClick={() => dispatch(resetCart())}>
-        Reset Cart
+        Xóa giỏ hàng
       </span>
     </div>
   );

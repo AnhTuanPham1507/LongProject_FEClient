@@ -55,7 +55,7 @@ const Navbar = () => {
                 </MDBDropdownToggle>
                 <MDBDropdownMenu>
                   {
-                    data.map(cate =>
+                    data?.map(cate =>
                       <MDBDropdownItem >
                         <Link to={`products/${cate._id}`}>
                           {cate.name}

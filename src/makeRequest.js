@@ -6,22 +6,10 @@ const axi = axios.create({
 
 const categoryAPI = {
     getAll: () => axi.get(`/category`),
-    create: (formData) => axi.post(`/category`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-            }
-        }),
-    update: (id, formData) => axi.put(`/category/${id}`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-            }
-        }),
-    delete: (id) => axi.delete(`/category/${id}`),
+}
 
+const trademarkAPI = {
+    getAll: () => axi.get(`/trademark`),
 }
 
 const productAPI = {
@@ -62,4 +50,4 @@ const exportOrderAPI = {
 }
 
 
-export default { categoryAPI, productAPI, provinceAPI, exportOrderAPI };
+export default { trademarkAPI, categoryAPI, productAPI, provinceAPI, exportOrderAPI };
