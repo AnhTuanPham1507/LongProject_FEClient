@@ -16,20 +16,6 @@ const productAPI = {
     getAll: () => axi.get(`/product`),
     getById: (id) => axi.get(`/product/${id}`),
     getByCategoryId: (id) => axi.get(`/product/byCategory/${id}`),
-    create: (formData) => axi.post(`/product`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `application/json`
-            }
-        }),
-    update: (id, formData) => axi.put(`/product/${id}`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `application/json`
-            }
-        }),
 }
 
 const provinceAPI = {
@@ -46,8 +32,30 @@ const exportOrderAPI = {
                 'Content-Type': `application/json`
             }
         })
+}
 
+const userAPI = {
+    login: (data) => axi.post(`/user/login`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    register: (data) => axi.post(`/user/register`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    forgotPassword: (data) => axi.post(`/user/forgot`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    updateNewPassword: (data) => axi.post(`/user/updateNewPassword`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
 }
 
 
-export default { trademarkAPI, categoryAPI, productAPI, provinceAPI, exportOrderAPI };
+export default { trademarkAPI, categoryAPI, productAPI, provinceAPI, exportOrderAPI, userAPI };

@@ -222,7 +222,7 @@ function Payment() {
 
                                         <Form.Group className="mb-3" >
                                             <Form.Label>Địa chỉ email</Form.Label>
-                                            <Form.Control pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+                                            <Form.Control pattern="/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
                                         </Form.Group>
                                         <Form.Group className="mb-3" >
                                             <Form.Label>Phương thức thanh toán</Form.Label>

@@ -1,4 +1,5 @@
 import cartReducer from "./cartReducer";
+import tokenReducer from "./tokenReducer";
 import { configureStore } from "@reduxjs/toolkit";
 import {
   persistStore,
@@ -19,10 +20,12 @@ const persistConfig = {
 };
 
 const persistedReducer = persistReducer(persistConfig, cartReducer);
+const persistedReducer1 = persistReducer(persistConfig, tokenReducer);
 
 export const store = configureStore({
   reducer: {
     cart: persistedReducer,
+    token: persistedReducer1
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

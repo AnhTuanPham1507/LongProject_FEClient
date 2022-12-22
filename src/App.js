@@ -9,6 +9,10 @@ import 'mdb-react-ui-kit/dist/css/mdb.min.css';
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import Error from "./pages/Error/Error";
 import Payment from "./pages/Payment/Payment";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import UpdateNewPassword from "./pages/UpdateNewPassword/UpdateNewPassword";
 
 const Layout = () => {
   return (
@@ -40,6 +44,22 @@ const router = createBrowserRouter([
       {
         path: "/payment",
         element: <Payment />,
+      },
+      {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/register",
+        element: <Register />,
+      },
+      {
+        path: "/forgot",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/updateNewPassword/:token",
+        element: <UpdateNewPassword />,
       },
     ],
   },
