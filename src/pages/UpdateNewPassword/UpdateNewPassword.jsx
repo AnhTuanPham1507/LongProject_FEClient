@@ -7,11 +7,13 @@ import makeRequest from '../../makeRequest';
 function UpdateNewPassword() {
     const {token} =  useParams()
     const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     async function handleUpdateNewPassword(e) {
         e.preventDefault()
         try {
+            setLoading(true)
             await makeRequest.userAPI.updateNewPassword({ password, token})
             alert("Tạo mật khẩu mới thành công")
             navigate("/")
@@ -20,10 +22,14 @@ function UpdateNewPassword() {
                 alert(error.response.data.message)
             }
             alert(error.toString())
+        } finally{
+            setLoading(false)
         }
     }
 
     return (
+        loading ?
+        "loading...":
         <Container style={{ marginTop: "20px" }}>
             <h1 style={{ textAlign: "center" }}>Tạo mật khẩu mới</h1>
             <Form onSubmit={handleUpdateNewPassword}>

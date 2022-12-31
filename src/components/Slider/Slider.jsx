@@ -14,8 +14,9 @@ const Slider = () => {
   return (
     <MDBCarousel showIndicators showControls fade>
       {
-        data.map((item,index) => (
+        data.map((item, index) => (
           <MDBCarouselItem
+            key={index}
             className='w-500 h-500 d-block'
             itemId={index}
             src={item}

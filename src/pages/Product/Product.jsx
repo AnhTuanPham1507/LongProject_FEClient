@@ -8,6 +8,8 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/cartReducer";
 import { numberWithCommas } from "../../utils/FormatPrice";
 import { MDBIcon } from "mdb-react-ui-kit";
+import StarRatings from "react-star-ratings";
+import { fDate } from "../../utils/formatTime";
 
 const Product = () => {
   const {id} = useParams();
@@ -17,7 +19,8 @@ const Product = () => {
   const [maxQuantity, setMaxQuantity] = useState(0)
 
   const dispatch = useDispatch();
-  const { data, loading, error } = useFetch("productAPI", "getById", id);
+  const { data } = useFetch("productAPI", "getById", id);
+  const {data:rates} = useFetch("ratingAPI", "getByProductId", id);
 
   useEffect(() => {
     if (data)
@@ -57,7 +60,7 @@ const Product = () => {
 
   return (
     <div className="product">
-      {data === null ? (
+      {!data && !rates ? (
         "loading"
       ) : (
         <>
@@ -65,7 +68,7 @@ const Product = () => {
             <div className="left__images">
               <div className="images">
                 {
-                  data.imgs.map((img,index) => (
+                  data?.imgs.map((img,index) => (
                     <img
                       key={index}
                       src={
@@ -92,6 +95,30 @@ const Product = () => {
               <h2>Thông tin chi tiết: </h2>
               <p>{data?.description}</p>
             </div>
+            <div style={{ marginTop: "30px" }} class="left__des tab-content">
+                    <div className="tab-pane active" id="tabs-7" role="tabpanel">
+                        <div className="product__details__tab__content">
+                            <h3 >Mức độ hài lòng {rates?.length > 0 ? (rates?.reduce((total, rate) => total += rate.star, 0)/rates?.length): 5}/5</h3>
+                            {
+                                rates?.map(rate => (
+                                    <div key={rate._id} class="product__details__tab__content__item">
+                                        <StarRatings
+                                            rating={rate.star}
+                                            starRatedColor="#fa8c16"
+                                            numberOfStars={5}
+                                            name='rating'
+                                            starDimension="25px"
+                                            starSpacing="5px"
+                                        />
+                                        <p><strong>{rate.r_user.name}</strong>: {rate.comment}</p>
+                                        <strong>{fDate(rate.createdAt)}</strong>
+                                    </div>
+                                ))
+                            }
+
+                        </div>
+                    </div>
+                </div>
           </div>
 
           <div className="right">
@@ -100,7 +127,7 @@ const Product = () => {
             <div>
               <h3>Size</h3>
               {
-                data.r_consignments
+                data?.r_consignments
                   .map((consignment) => (
                     <button
                       key={consignment._id}

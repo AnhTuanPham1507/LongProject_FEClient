@@ -23,6 +23,7 @@ function Register() {
         try {
             const res = await makeRequest.userAPI.register({ username, password,name,email,phone,address, role:"Customer" })
             dispatch(setValue(res.data))
+            alert("Đăng ký thành công")
             navigate("/")
         } catch (error) {
             if (axios.isAxiosError(error)) {

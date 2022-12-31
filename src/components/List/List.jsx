@@ -3,7 +3,7 @@ import "./List.scss";
 import Card from "../Card/Card";
 import useFetch from "../../hooks/useFetch";
 
-const List = ({ subCats, maxPrice, sort, catId , products}) => {
+const List = ({ products}) => {
 
   return (
     <div className="list">

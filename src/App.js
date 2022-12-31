@@ -13,6 +13,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import UpdateNewPassword from "./pages/UpdateNewPassword/UpdateNewPassword";
+import Order from "./pages/Order/Order";
 
 const Layout = () => {
   return (
@@ -54,12 +55,20 @@ const router = createBrowserRouter([
         element: <Register />,
       },
       {
+        path: "/order",
+        element: <Order />,
+      },
+      {
         path: "/forgot",
         element: <ForgotPassword />,
       },
       {
         path: "/updateNewPassword/:token",
         element: <UpdateNewPassword />,
+      },
+      {
+        path: "/error",
+        element: <Error />,
       },
     ],
   },

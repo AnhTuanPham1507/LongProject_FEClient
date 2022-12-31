@@ -19,6 +19,7 @@ function Login() {
         try {
             const res = await makeRequest.userAPI.login({ username, password })
             dispatch(setValue(res.data))
+            alert("Đăng nhập thành công")
             navigate("/")
         } catch (error) {
             if (axios.isAxiosError(error)) {

@@ -7,11 +7,12 @@ function ForgotPassword() {
     const [email, setEmail] = useState("")
     const [message, setMessage] = useState("")
     const [error, setError] = useState("")
-
+    const [loading,setLoading] = useState(false)
 
     async function handleForgotPassword(e) {
         e.preventDefault()
         try {
+            setLoading(true)
             const res = await makeRequest.userAPI.forgotPassword({ email })
             console.log(res.data)
             setMessage(res.data.message)
@@ -20,10 +21,14 @@ function ForgotPassword() {
                 setError(error.response.data.message)
             }
             setError(error.toString())
+        } finally{
+            setLoading(false)
         }
     }
 
     return (
+        loading ? 
+        "loading...":
         <Container style={{ marginTop: "20px" }}>
             {message !== "" ?
                 <Alert>{message}</Alert> :

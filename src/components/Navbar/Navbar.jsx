@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cart from "../Cart/Cart";
 import {
   MDBContainer,
@@ -15,14 +15,27 @@ import {
   MDBDropdownItem,
   MDBCollapse,
 } from 'mdb-react-ui-kit';
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import useFetch from "../../hooks/useFetch";
+import { clear } from "../../redux/tokenReducer";
 
 const Navbar = () => {
-  const products = useSelector((state) => state.cart.products);
+  const { products, token } = useSelector((state) => {
+    return {
+      products: state.cart.products,
+      token: state.token.value
+    }
+  });
   const [showBasic, setShowBasic] = useState(false)
-
+  const dispatch = useDispatch()
   const { data, loading, error } = useFetch("categoryAPI", "getAll")
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    dispatch(clear())
+    if (window.confirm("đang xuất thành công, bạn có muốn chuyển đến trang đăng nhập?"))
+      navigate("/login")
+  }
 
   return (
     <MDBNavbar expand='lg' light bgColor='light'>
@@ -56,7 +69,7 @@ const Navbar = () => {
                 <MDBDropdownMenu>
                   {
                     data?.map(cate =>
-                      <MDBDropdownItem >
+                      <MDBDropdownItem key={cate._id}>
                         <Link to={`products/${cate._id}`}>
                           {cate.name}
                         </Link>
@@ -88,6 +101,49 @@ const Navbar = () => {
 
             <MDBDropdownMenu>
               <Cart />
+            </MDBDropdownMenu>
+          </MDBDropdown>
+
+          <MDBDropdown style={{ marginLeft: "10px" }}>
+            <MDBDropdownToggle tag='a' role='button'>
+              <MDBIcon fas icon="user" />
+            </MDBDropdownToggle>
+
+            <MDBDropdownMenu>
+              {
+                token === null ?
+                  <>
+                    <MDBDropdownItem>
+                      <Link to="login">
+                        Đăng nhập
+                      </Link>
+                    </MDBDropdownItem>
+                    <MDBDropdownItem>
+                      <Link to="register">
+                        Đăng ký
+                      </Link>
+                    </MDBDropdownItem>
+                  </> :
+                  <>
+                    <MDBDropdownItem>
+                      <Link to="user">
+                        Thông tin tài khoản
+                      </Link>
+                    </MDBDropdownItem>
+                    <MDBDropdownItem>
+                      <Link to="order">
+                        Xem đơn hàng
+                      </Link>
+                    </MDBDropdownItem>
+                    <MDBDropdownItem onClick={() => { handleLogout() }}>
+                      <Link>
+                        Đăng xuất
+                      </Link>
+                    </MDBDropdownItem>
+                  </>
+              }
+
+
             </MDBDropdownMenu>
           </MDBDropdown>
 
