@@ -11,7 +11,8 @@ export const cartSlice = createSlice({
     addToCart: (state, action) => {
       const item = state.products.find((item) => item._id === action.payload._id && item.size === action.payload.size);
       if (item) {
-        item.quantity += action.payload.quantity;
+        if(item.maxQuantity > item.quantity + action.payload.quantity)
+          item.quantity += action.payload.quantity;
       } else {
         state.products.push(action.payload);
       }

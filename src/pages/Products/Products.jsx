@@ -1,21 +1,24 @@
+import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import List from "../../components/List/List";
 import useFetch from "../../hooks/useFetch";
+import makeRequest from "../../makeRequest";
 import { numberWithCommas } from "../../utils/FormatPrice";
 import "./Products.scss";
 
 const Products = () => {
-  const catId = useParams().categoryId;
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [subProducts, setSubProducts] = useState([]);
-
+  const [products, setProducts] = useState([])
   const [maxPrice, setMaxPrice] = useState(100000000);
   const [sort, setSort] = useState("desc");
   const [selectedTrademarks, setSelectedTrademarks] = useState([])
 
-  const { data: products, loading, error } = useFetch("productAPI", "getByCategoryId", catId);
   const { data: trademarks } = useFetch("trademarkAPI", "getAll");
 
   const handleCheckTrademark = (isChecked, trademarkId) => {
@@ -27,6 +30,31 @@ const Products = () => {
       setSelectedTrademarks(tempSelectedTrademarks)
     }
   }
+
+  useEffect(() => {
+    async function getProducts() {
+          try {
+            setLoading(true)
+              let filter = ""
+              const cateId = searchParams.get("cateId")
+              const searchTerm = searchParams.get("searchTerm")
+              if(cateId)
+                filter += `r_category=${cateId}&`
+              if(searchTerm)
+                filter += `name=${searchTerm}`
+              const res = await makeRequest.productAPI.filter(filter)
+              setProducts(res.data)
+          } catch (error) {
+              if (axios.isAxiosError(error))
+                  setError(error.response ? error.response.data.message : error.message)
+              else
+              setError(error.toString())
+          } finally{
+            setLoading(false)
+          }
+      }
+    getProducts()
+  },[searchParams])
 
   useEffect(() => {
     if (error)

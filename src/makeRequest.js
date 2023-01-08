@@ -16,6 +16,7 @@ const productAPI = {
     getAll: () => axi.get(`/product`),
     getById: (id) => axi.get(`/product/${id}`),
     getByCategoryId: (id) => axi.get(`/product/byCategory/${id}`),
+    filter: (filter) => axi.get(`/product?${filter}`),
 }
 
 const provinceAPI = {
@@ -25,11 +26,12 @@ const provinceAPI = {
 }
 
 const exportOrderAPI = {
-    create: (data) => axi.post(`/exportOrder`,
+    create: (token,data) => axi.post(`/exportOrder`,
         data,
         {
             headers: {
-                'Content-Type': `application/json`
+                'Content-Type': `application/json`,
+                'x-access-token':token
             }
         }),
     getAll: (token) => axi.get(`/exportOrder/byUser`, {
@@ -60,6 +62,17 @@ const userAPI = {
             'Content-Type': `application/json`
         }
     }),
+    updateUserInfo: (token,data) => axi.put(`/user`,data,{
+        headers: {
+            'Content-Type': `application/json`,
+            'x-access-token': token
+        }
+    }),
+    getUserInfo: (token) => axi.get(`/user`,{
+        headers: {
+            'x-access-token': token
+        }
+    }),
 }
 
 const ratingAPI = {
@@ -72,4 +85,13 @@ const ratingAPI = {
     getByProductId: (id) => axi.get(`/rate/byProduct/${id}`)
 }
 
-export default { trademarkAPI, categoryAPI, productAPI, provinceAPI, exportOrderAPI, userAPI, ratingAPI };
+const notificationAPI = {
+    getAll: (token) => axi.get(`/notification`,{
+        headers: {
+            'x-access-token': token
+        }
+    }),
+    updateIsRead: (id) => axi.put(`/notification/${id}`)
+}
+
+export default { trademarkAPI, categoryAPI, productAPI, provinceAPI, exportOrderAPI, userAPI, ratingAPI, notificationAPI };

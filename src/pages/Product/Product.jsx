@@ -53,6 +53,7 @@ const Product = () => {
         price: data.price,
         img: data.imgs[0],
         quantity,
+        maxQuantity,
         size
       }))
     }

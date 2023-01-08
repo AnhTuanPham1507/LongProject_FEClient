@@ -25,7 +25,12 @@ import { usePlacesWidget } from "react-google-autocomplete";
 import makeRequest from "../../makeRequest";
 
 function Payment() {
-    const cartItems = useSelector((state) => state.cart.products);
+    const { token, cartItems } = useSelector((state) => {
+        return {
+            cartItems: state.cart.products,
+            token: state.token.value
+        }
+    });
     const dispatch = useDispatch();
 
     const [cities, setCities] = useState([])
@@ -101,7 +106,7 @@ function Payment() {
                     }
                 })
             }
-            const res = await apiAgent.exportOrderAPI.create(orderData)
+            const res = await apiAgent.exportOrderAPI.create(token,orderData)
             window.location.href = res.data.payUrl
         } catch (error) {
             if (axios.isAxiosError(error)) {

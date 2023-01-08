@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Form, Link, useNavigate } from "react-router-dom";
 import Cart from "../Cart/Cart";
 import {
   MDBContainer,
@@ -18,6 +18,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import useFetch from "../../hooks/useFetch";
 import { clear } from "../../redux/tokenReducer";
+import "./Navbar.scss"
+import { ListGroup } from "react-bootstrap";
+import makeRequest from "../../makeRequest";
+import axios from "axios";
+import Notification from "../Notification/Notification";
 
 const Navbar = () => {
   const { products, token } = useSelector((state) => {
@@ -27,6 +32,10 @@ const Navbar = () => {
     }
   });
   const [showBasic, setShowBasic] = useState(false)
+  const [isShowSearchbar, setIsShowSearchbar] = useState(false)
+  const [suggestedProcucts, setSuggestedProducts] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const [searchTerm, setSearchTerm] = useState("")
   const dispatch = useDispatch()
   const { data, loading, error } = useFetch("categoryAPI", "getAll")
   const navigate = useNavigate()
@@ -36,6 +45,53 @@ const Navbar = () => {
     if (window.confirm("đang xuất thành công, bạn có muốn chuyển đến trang đăng nhập?"))
       navigate("/login")
   }
+
+  function closeSearchbar() {
+    setSearchTerm("")
+    setIsShowSearchbar(false)
+  }
+
+  async function handleSearchSubmit(e) {
+    e.preventDefault()
+    navigate(`/products?searchTerm=${searchTerm}`)
+    closeSearchbar()
+  }
+
+  useEffect(() => {
+    async function search() {
+      if (searchTerm !== "") {
+        try {
+          const res = await makeRequest.productAPI.filter(`name=${searchTerm}`)
+          setSuggestedProducts(res.data)
+        } catch (error) {
+          if (axios.isAxiosError(error))
+            alert(error.response ? error.response.data.message : error.message)
+          else
+            alert(error.toString())
+        }
+      } else {
+        setSuggestedProducts([])
+      }
+    }
+    const myTimeout = setTimeout(search, 200)
+    return () => {
+      clearTimeout(myTimeout)
+    }
+  }, [searchTerm])
+
+  useEffect(() => {
+    async function getNotifications() {
+      try {
+        const res = await makeRequest.notificationAPI.getAll(token);
+        setNotifications(res.data);
+      } catch (error) {
+        if (axios.isAxiosError(error))
+          alert((error.response ? error.response.data.message : error.message));
+        else alert((error.toString()));
+      }
+    }
+    getNotifications();
+  }, [])
 
   return (
     <MDBNavbar expand='lg' light bgColor='light'>
@@ -70,7 +126,7 @@ const Navbar = () => {
                   {
                     data?.map(cate =>
                       <MDBDropdownItem key={cate._id}>
-                        <Link to={`products/${cate._id}`}>
+                        <Link to={`products/?cateId=${cate._id}`}>
                           {cate.name}
                         </Link>
                       </MDBDropdownItem>
@@ -81,20 +137,29 @@ const Navbar = () => {
             </MDBNavbarItem>
           </MDBNavbarNav>
 
-          <MDBDropdown>
-            <MDBDropdownToggle tag='a' className='nav-link' role='button'>
-              <MDBIcon role='button' fas icon="search" />
-            </MDBDropdownToggle>
+          <form onSubmit={handleSearchSubmit}>
+            <input className={isShowSearchbar ? "search-input__active" : "search-input"} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value) }} type="text" placeholder="Tìm kiếm" />
+            <ListGroup style={{ zIndex: 9999 }} as="ul" variant="flush" className="suggest-list">
+              {
+                suggestedProcucts.map(p => (
+                  <Link onClick={closeSearchbar} to={`/product/${p._id}`}>
+                    <ListGroup.Item key={p._id} as="li">{p.name}</ListGroup.Item>
+                  </Link>
+                ))
+              }
+            </ListGroup>
+          </form>
 
-            <MDBDropdownMenu>
-              <form className='d-flex input-group w-auto'>
-                <input type='search' className='form-control' placeholder='Type query' aria-label='Search' />
-              </form>
-            </MDBDropdownMenu>
-          </MDBDropdown>
+          <MDBIcon
+            onClick={() => {
+              setSearchTerm("")
+              setIsShowSearchbar(!isShowSearchbar)
+            }}
+            style={{ marginRight: 10 }} role='button' fas icon="search"
+          />
 
           <MDBDropdown>
-            <MDBDropdownToggle tag='a' role='button'>
+            <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
               <MDBIcon fas icon="shopping-cart" />
               <span>{products.length}</span>
             </MDBDropdownToggle>
@@ -105,7 +170,7 @@ const Navbar = () => {
           </MDBDropdown>
 
           <MDBDropdown style={{ marginLeft: "10px" }}>
-            <MDBDropdownToggle tag='a' role='button'>
+            <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
               <MDBIcon fas icon="user" />
             </MDBDropdownToggle>
 
@@ -146,7 +211,21 @@ const Navbar = () => {
 
             </MDBDropdownMenu>
           </MDBDropdown>
+          <MDBDropdown>
+            <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
+              <MDBIcon fas icon="bell" />
+            </MDBDropdownToggle>
 
+            <MDBDropdownMenu className="Updates">
+                {
+                  notifications.map(n => (
+                    <MDBDropdownItem>
+                      <Notification n={n} />
+                    </MDBDropdownItem>
+                  ))
+                }
+            </MDBDropdownMenu>
+          </MDBDropdown>
         </MDBCollapse>
       </MDBContainer>
     </MDBNavbar >
