@@ -22,9 +22,10 @@ function Login() {
             alert("Đăng nhập thành công")
             navigate("/")
         } catch (error) {
+            console.log(error)
             if (axios.isAxiosError(error)) {
                 setError(error.response.data.message)
-            }
+            }else
             setError(error.toString())
         }
     }

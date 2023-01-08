@@ -57,12 +57,42 @@ const Navbar = () => {
     closeSearchbar()
   }
 
+  const handleMarkRead = async (notification) => {
+    try {
+      await makeRequest.notificationAPI.updateIsRead(notification._id);
+    } catch (error) {
+      if (axios.isAxiosError(error))
+        alert((error.response ? error.response.data.message : error.message));
+      else alert((error.toString()));
+    }
+  }
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const temp = notifications.filter(n => !n.isRead)
+      if (temp.length > 0) {
+        await Promise.all(temp.map(n => handleMarkRead(n)))
+        const tempNotifications = [...notifications.map(n => {
+          return {
+            ...n,
+            isRead: true
+          }
+        })]
+        setNotifications(tempNotifications)
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error))
+        alert((error.response ? error.response.data.message : error.message));
+      else alert((error.toString()));
+    }
+  };
+
   useEffect(() => {
     async function search() {
       if (searchTerm !== "") {
         try {
           const res = await makeRequest.productAPI.filter(`name=${searchTerm}`)
-          setSuggestedProducts(res.data)
+          setSuggestedProducts(res.data.docs)
         } catch (error) {
           if (axios.isAxiosError(error))
             alert(error.response ? error.response.data.message : error.message)
@@ -83,6 +113,7 @@ const Navbar = () => {
     async function getNotifications() {
       try {
         const res = await makeRequest.notificationAPI.getAll(token);
+        console.log(res.data)
         setNotifications(res.data);
       } catch (error) {
         if (axios.isAxiosError(error))
@@ -155,13 +186,13 @@ const Navbar = () => {
               setSearchTerm("")
               setIsShowSearchbar(!isShowSearchbar)
             }}
-            style={{ marginRight: 10 }} role='button' fas icon="search"
+            style={{ marginRight: 20 }} role='button' fas icon="search"
           />
 
-          <MDBDropdown>
+          <MDBDropdown style={{ marginRight: 20 }}>
             <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
               <MDBIcon fas icon="shopping-cart" />
-              <span>{products.length}</span>
+              <span>{products.length > 0 && products.length}</span>
             </MDBDropdownToggle>
 
             <MDBDropdownMenu>
@@ -169,7 +200,7 @@ const Navbar = () => {
             </MDBDropdownMenu>
           </MDBDropdown>
 
-          <MDBDropdown style={{ marginLeft: "10px" }}>
+          <MDBDropdown style={{ marginRight: 20 }}>
             <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
               <MDBIcon fas icon="user" />
             </MDBDropdownToggle>
@@ -211,19 +242,20 @@ const Navbar = () => {
 
             </MDBDropdownMenu>
           </MDBDropdown>
-          <MDBDropdown>
+          <MDBDropdown onClick={handleMarkAllAsRead}>
             <MDBDropdownToggle style={{ color: "black" }} tag='a' role='button'>
               <MDBIcon fas icon="bell" />
+              <span>{notifications.filter(n => !n.isRead).length > 0 && notifications.filter(n => !n.isRead).length}</span>
             </MDBDropdownToggle>
 
             <MDBDropdownMenu className="Updates">
-                {
-                  notifications.map(n => (
-                    <MDBDropdownItem>
-                      <Notification n={n} />
-                    </MDBDropdownItem>
-                  ))
-                }
+              {
+                notifications.map(n => (
+                  <MDBDropdownItem>
+                    <Notification n={n} />
+                  </MDBDropdownItem>
+                ))
+              }
             </MDBDropdownMenu>
           </MDBDropdown>
         </MDBCollapse>

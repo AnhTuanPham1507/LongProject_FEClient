@@ -28,8 +28,7 @@ function Register() {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 setError(error.response.data.message)
-                return
-            }
+            } else
             setError(error.toString())
         }
     }

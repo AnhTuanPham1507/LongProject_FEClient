@@ -13,8 +13,8 @@ const Home = () => {
 
   useEffect(() => {
     if(data){
-      const tempNewest = [...data]
-      const tempSold = [...data]
+      const tempNewest = [...data.docs]
+      const tempSold = [...data.docs]
       tempNewest.sort((a,b) => new Date (b.createdAt) - new Date (a.createdAt))
       tempSold.sort((a,b) => b.price - a.price)
       setNewestProducts(tempNewest)

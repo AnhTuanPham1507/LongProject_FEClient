@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import List from "../../components/List/List";
+import MyPagination from "../../components/Pagination/Pagination";
 import useFetch from "../../hooks/useFetch";
 import makeRequest from "../../makeRequest";
 import { numberWithCommas } from "../../utils/FormatPrice";
@@ -12,12 +13,13 @@ const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
   const [subProducts, setSubProducts] = useState([]);
   const [products, setProducts] = useState([])
   const [maxPrice, setMaxPrice] = useState(100000000);
   const [sort, setSort] = useState("desc");
   const [selectedTrademarks, setSelectedTrademarks] = useState([])
+  const [pagination, setPagination] = useState(null)
+
 
   const { data: trademarks } = useFetch("trademarkAPI", "getAll");
 
@@ -33,33 +35,47 @@ const Products = () => {
 
   useEffect(() => {
     async function getProducts() {
-          try {
-            setLoading(true)
-              let filter = ""
-              const cateId = searchParams.get("cateId")
-              const searchTerm = searchParams.get("searchTerm")
-              if(cateId)
-                filter += `r_category=${cateId}&`
-              if(searchTerm)
-                filter += `name=${searchTerm}`
-              const res = await makeRequest.productAPI.filter(filter)
-              setProducts(res.data)
-          } catch (error) {
-              if (axios.isAxiosError(error))
-                  setError(error.response ? error.response.data.message : error.message)
-              else
-              setError(error.toString())
-          } finally{
-            setLoading(false)
-          }
+      try {
+        setLoading(true)
+        let filter = ""
+        const cateId = searchParams.get("cateId")
+        const searchTerm = searchParams.get("searchTerm")
+        if (cateId)
+          filter += `r_category=${cateId}&`
+        if (searchTerm)
+          filter += `name=${searchTerm}`
+        const res = await makeRequest.productAPI.filter(filter)
+        setProducts(res.data.docs)
+        setPagination({ activePage: res.data.page, totalPages: res.data.totalPages })
+      } catch (error) {
+        if (axios.isAxiosError(error))
+          alert(error.response ? error.response.data.message : error.message)
+        else
+          alert(error.toString())
+      } finally {
+        setLoading(false)
       }
+    }
     getProducts()
-  },[searchParams])
+  }, [searchParams])
 
-  useEffect(() => {
-    if (error)
-      navigate("/error")
-  }, [error])
+  const handleChangePage = async (activePage) => {
+    try {
+      setLoading(true)
+      let myFilter = `reqPage=${activePage}`
+      const res = await makeRequest.productAPI.filter(myFilter)
+      setProducts(res.data.docs)
+      setPagination({ activePage: res.data.page, totalPages: res.data.totalPages })
+    } catch (error) {
+      if (axios.isAxiosError(error))
+        alert((error.response ? error.response.data.message : error.message))
+      else
+        alert((error.toString()))
+    }
+    finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (products)
@@ -70,20 +86,19 @@ const Products = () => {
     const myTimeout = setTimeout(() => {
       if (products) {
         let filterProducts = products.filter(p => p.price <= maxPrice)
-        if(selectedTrademarks.length > 0)
+        if (selectedTrademarks.length > 0)
           filterProducts = filterProducts.filter(p => selectedTrademarks.includes(p.r_trademark._id))
         if (sort === "desc")
           filterProducts.sort((a, b) => b.price - a.price)
         else
           filterProducts.sort((a, b) => a.price - b.price)
-        console.log(selectedTrademarks)
         setSubProducts(filterProducts)
       }
-    },500)
+    }, 500)
     return () => {
       clearTimeout(myTimeout)
     }
-  }, [maxPrice, sort, selectedTrademarks])
+  }, [maxPrice, sort, selectedTrademarks,products])
 
   return (
     loading ?
@@ -127,7 +142,7 @@ const Products = () => {
                 value="desc"
                 name="price"
                 defaultChecked
-                onChange={(e) => {setSort("desc")}}
+                onChange={(e) => { setSort("desc") }}
               />
               <label htmlFor="desc">Giá (Từ cao tới thấp)</label>
             </div>
@@ -137,7 +152,7 @@ const Products = () => {
                 id="asc"
                 value="asc"
                 name="price"
-                onChange={(e) => {setSort("asc")}}
+                onChange={(e) => { setSort("asc") }}
               />
               <label htmlFor="asc">Giá (Từ thấp tới cao)</label>
             </div>
@@ -150,6 +165,11 @@ const Products = () => {
             alt=""
           />
           <List products={subProducts} />
+          <MyPagination
+            activePage={pagination?.activePage}
+            totalPages={pagination?.totalPages}
+            onClick={handleChangePage}
+          />
         </div>
       </div>
   );
